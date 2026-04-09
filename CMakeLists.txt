@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(ViPERDSP LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+# --- AGREGA ESTAS LÍNEAS AQUÍ ---
+# Activar constantes matemáticas (M_PI) para MSVC
+add_definitions(-D_USE_MATH_DEFINES)
+
+# Forzar C++20 para permitir los designated initializers
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# --------------------------------
 
 set(VIPERDSP_SOURCES
     # FFT
@@ -10,6 +16,7 @@ set(VIPERDSP_SOURCES
 
     # Engine
     viper/ViPER.cpp
+    viper/viper_bridge.cpp
 
     # Effects
     viper/effects/AnalogX.cpp
@@ -61,14 +68,28 @@ set(VIPERDSP_SOURCES
     viper/utils/WaveBuffer.cpp
 )
 
-add_library(ViPERDSP STATIC ${VIPERDSP_SOURCES})
+add_library(ViPERDSP SHARED ${VIPERDSP_SOURCES})
 
 target_include_directories(ViPERDSP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_options(ViPERDSP PRIVATE -O3 -flto)
+if(MSVC)
+    target_compile_options(ViPERDSP PRIVATE
+        $<$<CONFIG:Release>:/O2 /GL>
+        $<$<CONFIG:RelWithDebInfo>:/O2 /GL>
+        $<$<CONFIG:MinSizeRel>:/O2 /GL>
+    )
+    target_link_options(ViPERDSP PRIVATE
+        $<$<CONFIG:Release>:/LTCG>
+        $<$<CONFIG:RelWithDebInfo>:/LTCG>
+        $<$<CONFIG:MinSizeRel>:/LTCG>
+    )
+else()
+    target_compile_options(ViPERDSP PRIVATE -O3 -flto)
+    target_link_options(ViPERDSP PRIVATE -flto)
+endif()
 
 if(ANDROID)
     target_link_libraries(ViPERDSP log)

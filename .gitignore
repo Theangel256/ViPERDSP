@@ -9,3 +9,15 @@ CMakeCache.txt
 CMakeFiles/
 Makefile
 .DS_Store
+*.log
+*.tmp
+*.sln
+*.vcxproj*
+*.xcodeproj
+*.slnx
+*.cmake
+ViperDSP.dir/
+x64/
+x86/
+Release/
+Debug/
